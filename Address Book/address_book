@@ -1,0 +1,102 @@
+#include <iostream>
+#include <string>
+#include <vector>
+
+struct PersonInfo
+{
+	std::string m_name;
+	std::string m_address;
+	int m_phone;
+};
+
+PersonInfo InfoCollector();
+void help();
+
+class AddressBook {
+public:
+
+	void add(PersonInfo obj)
+	{
+		data.push_back(obj);
+	}
+	void remove()
+	{
+		while (!data.empty())
+		{
+			data.pop_back();
+		}
+	}
+	void list()
+	{
+		if (data.size() == 0)
+		{
+			std::cout << "No existing information."<<std::endl;
+		}
+		for (int i = 0; i < data.size(); ++i)
+		{
+			std::cout << data[i].m_name << " | " << data[i].m_address << " | " << data[i].m_phone<<std::endl;
+		}
+	}
+private: 
+	std::vector<PersonInfo> data;
+};
+
+int main() {
+	AddressBook obj;
+	const std::string commands[] {"help", "add", "remove", "list", "EXIT"};
+	std::string command;
+	std::cout << "Enter a command. Enter EXIT if you want to quit." << std::endl;
+	while (command != "EXIT") {
+		std::cin >> command;
+		if (command == commands[0])
+		{
+			help();
+		}
+		else if (command == commands[1])
+		{
+			obj.add(InfoCollector());
+			std::cout << "The information is successfully added."<<std::endl;
+		}
+		else if (command == commands[2])
+		{
+			obj.remove();
+			std::cout << "The information is successfully deleted. "<<std::endl;
+		}
+		else if (command == commands[3])
+		{
+			obj.list();
+		}
+		else if (command == commands[4])
+		{
+			break;
+		}
+		else
+		{
+			std::cout << "There is no such command. Try again! "<<std::endl;
+		}
+	}
+}
+
+PersonInfo InfoCollector()
+{
+	std::cout << "Enter the name: ";
+	std::string name;
+	std::cin >> name;
+	std::cout << "Enter the address: ";
+	std::string address;
+	std::cin >> address;
+	std::cout << "Enter the phone number: ";
+	int phone;
+	std::cin >> phone;
+	PersonInfo ob;
+	ob.m_name = name;
+	ob.m_address = address;
+	ob.m_phone = phone;
+	return ob;
+}
+
+void help()
+{
+	std::cout << "You can choose from these commands:" << std::endl
+		<< "add" << std::endl << "remove" << std::endl << "list" << std::endl;
+}
