@@ -1,0 +1,171 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+
+struct File_or_Folder
+{
+	File_or_Folder(const std::string& file_name) : name{ file_name } {};
+	std::string name;
+	std::vector < std::shared_ptr<File_or_Folder>> folders;
+	std::vector<std::string> files;
+	std::shared_ptr<File_or_Folder> prev;
+};
+
+class virtual_file_system
+{
+public: 
+	virtual_file_system() : root{ new File_or_Folder ("root/")}
+	{
+		path.push_back("root/");
+	}
+
+	void runner(const std::string& input)
+	{
+		std::string command;
+		std::string f_name;
+		for (int i = 0; i < input.size(); ++i)
+		{
+			if (input[i] == ' ')
+			{
+				f_name += std::string(input.begin() + i + 1, input.end());
+				break;
+			}
+				command += input[i];
+		}
+		if (command == "mkdir")
+		{
+			auto exists = std::find_if(root->folders.begin(), root->folders.end(), [&f_name](std::shared_ptr<File_or_Folder> folder) {
+				return folder->name == f_name;
+			});
+			if (exists == (root->folders.end())) {
+				root->folders.push_back(std::shared_ptr<File_or_Folder>(new File_or_Folder(f_name)));
+				root->folders.back()->prev = root;
+			}
+			else
+			{
+				std::cout << "The file with that name already exists."<<std::endl;
+			}
+		}
+		else if (command == "cd")
+		{
+			if (std::find(f_name.begin(), f_name.end(), '/') != f_name.end()) {
+				std::vector<std::string> paths;
+				while (!f_name.empty()) {
+					auto exists = std::find(f_name.begin(), f_name.end(), '/');
+					paths.push_back(std::string(f_name.begin(), exists));
+
+					if (exists == f_name.end()) {
+						f_name.erase(f_name.begin(), exists);
+					}
+					else {
+						f_name.erase(f_name.begin(), exists + 1);
+					}
+				}
+
+				for (int i = 0; i < paths.size(); ++i) {
+					cd(paths[i]);
+				}
+			}
+			else if (f_name == "..") {
+				if (root->prev != nullptr) {
+					root = root->prev;
+					path.pop_back();
+				}
+			}
+			else {
+				cd(f_name);
+			}
+		}
+		else if (command == "rm")
+		{
+			auto exists = std::find(root->files.begin(), root->files.end(), f_name);
+
+			if (exists == root->files.end()) {
+				std::cout << "No such file." << std::endl;
+			}
+			else {
+				root->files.erase(exists);
+			}
+		}
+		else if (command == "touch")
+		{
+			root->files.push_back(f_name);
+		}
+		else if (command == "rmdir")
+		{
+			bool doesnt_exist = true;
+			for (int i = 0; i < root->folders.size(); ++i) {
+				if (root->folders[i]->name == f_name) {
+					root->folders.erase(root->folders.begin() + i);
+
+					doesnt_exist = false;
+					break;
+				}
+			}
+
+			if (doesnt_exist) {
+				std::cout << "No such directory." << std::endl;
+			}
+		}
+		else if (command == "ls")
+		{
+			for (int i = 0; i < root->folders.size(); ++i)
+			{
+				std::cout << root -> folders[i]->name << ' ';
+			}
+			for (int i = 0; i < root->files.size(); ++i)
+			{
+				std::cout << root->files[i]<<' ';
+			}
+			std::cout << std::endl;
+		}
+		else if (command == "pwd")
+		{
+			for (int i = 0; i < path.size(); ++i)
+			{
+				std::cout << path[i];
+			}
+			std::cout<<std::endl;
+		}
+
+	}
+
+private: 
+	void cd(const std::string& f_name)
+	{
+		auto exists = std::find_if(root->folders.begin(), root->folders.end(), [&f_name](std::shared_ptr<File_or_Folder> folder) {
+			return folder->name == f_name;
+			});
+		if (exists == (root->folders.end()))
+		{
+			std::cout << "No such folder. " << std::endl;
+		}
+		else
+		{
+			(*exists)->prev = root;
+			root = (*exists);
+
+			path.push_back((f_name + '/'));
+		}
+	}
+
+private:
+	std::shared_ptr<File_or_Folder> root;
+	std::vector<std::string> path;
+};
+
+int main() {
+	virtual_file_system obj;
+	std::cout << "Enter commands to use and EXIT to quit."<<std::endl;
+	do {
+		std::string command;
+		std::getline(std::cin, command);
+
+		if (command == "EXIT") {
+			break;
+		}
+
+		obj.runner(command);
+	} while (true);
+}
