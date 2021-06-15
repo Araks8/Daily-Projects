@@ -1,0 +1,81 @@
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <cstring>
+
+std::string compress(std::string& str);
+void decompress(std::string file_name1, std::string file_name2);
+void fill_the_file(std::string file_name, std::string str);
+
+int main() {
+	std::ifstream compressible_file("Text To Compress.txt");
+	std::string line;
+	while (!compressible_file.eof())
+	{
+		getline(compressible_file, line);
+        line=compress(line);
+        fill_the_file("Compressed Text.txt", line);
+        decompress("Compressed Text.txt", "Decompressed Text.txt");
+	}
+
+}
+
+std::string compress(std::string& str)
+{
+    int count = 1;
+    int jx = 0;
+    std::string tmp;
+    for (int i = 0; i < str.size(); ++i) {
+
+        if (i < str.size() - 1 && str[i] == str[i + 1])
+        {
+            ++count;
+        }
+        else {
+            tmp += str[i];
+            if (count > 1) {
+               tmp+= std::to_string(count);
+               count = 1;
+            }
+        }
+    }
+    return tmp;
+}
+
+void fill_the_file(std::string file_name, std::string str)
+{
+    std::fstream compressed_file(file_name, std::ios::in | std::ios::out | std::ios::trunc);
+    compressed_file << str;
+}
+
+void decompress(std::string file_name1, std::string file_name2)
+{
+    std::string tmp;
+    std::string symbol;
+    int count=1;
+    std::ifstream compressed__file(file_name1);
+    std::string line;
+    while (!compressed__file.eof())
+    {
+        getline(compressed__file, line);
+    }
+    for (int i = 0; i < line.size(); ++i)
+    {
+        if (line[i] > 47 && line[i]<58)
+        {
+            symbol = line[i];
+            count = std::stoi(symbol);
+        }
+        else
+        {
+            tmp += line[i];
+        }
+        while (count != 1)
+        {
+            tmp += line[i - 1];
+            --count;
+        }
+    }
+    std::ofstream decomp_text(file_name2);
+    decomp_text << tmp;
+}
